@@ -8,39 +8,39 @@ local getWatchList = function ()
 
   return {
     TQBR = {
-	  "RASP",
-	  "HYDR",
-	  "GMKN",
-	  "LKOH",
-	  "MVID",
-	  "CHMF",
-	  "MFON",
-	  "NVTK",
-	  "ALRS",
-	  "NLMK",
-	  "RTKM",
-	  "SNGSP",
-	  "ROSN",
-	  "IRAO",
-	  "FEES",
-	  "PHOR",
-	  "RSTI",
-	  "MAGN",
-	  "SIBN",
-	  "TRNFP",
-	  "SBERP",
-	  "VTBR",
-	  "SNGS",
-	  "GAZP",
-	  "MGNT",
-	  "MTSS",
-	  "TATN",
-	  "MSNG",
-	  "SBER",
-	  "MOEX",
-	  "AFLT",
-	  "MTLR"
-	}
+      "RASP",
+      "HYDR",
+      "GMKN",
+      "LKOH",
+      "MVID",
+      "CHMF",
+      "MFON",
+      "NVTK",
+      "ALRS",
+      "NLMK",
+      "RTKM",
+      "SNGSP",
+      "ROSN",
+      "IRAO",
+      "FEES",
+      "PHOR",
+      "RSTI",
+      "MAGN",
+      "SIBN",
+      "TRNFP",
+      "SBERP",
+      "VTBR",
+      "SNGS",
+      "GAZP",
+      "MGNT",
+      "MTSS",
+      "TATN",
+      "MSNG",
+      "SBER",
+      "MOEX",
+      "AFLT",
+      "MTLR"
+    }
   }
 end
 
@@ -51,16 +51,16 @@ local buildRankedTable = function (watchList, period, daysBack)
   local securityList = {}
   for classCode, secCodes in pairs(watchList) do
     for _, secCode in ipairs(secCodes) do
-	  local datasource = _G.CreateDataSource(classCode, secCode, _G.INTERVAL_D1)
+      local datasource = _G.CreateDataSource(classCode, secCode, _G.INTERVAL_D1)
       datasource:SetEmptyCallback()
-	  table.sinsert(securityList, {
-	    classCode = classCode,
-		secCode = secCode,
-		datasource = datasource
-	  })
-	end
-    sleep(1000)
+      table.sinsert(securityList, {
+        classCode = classCode,
+        secCode = secCode,
+        datasource = datasource
+      })
+    end
   end
+  sleep(1000)
 
   -- build the table
   local daysBack = daysBack or 0
@@ -70,22 +70,20 @@ local buildRankedTable = function (watchList, period, daysBack)
   
     local datasource = security.datasource
     local lastCandleIndex = datasource:Size()
-	local close = datasource:C(lastCandleIndex)
-	local periodAgoCandleIndex = lastCandleIndex - period - daysBack
-	local closePeriodAgo = datasource:C(periodAgoCandleIndex)
-	local closeTwoPeriodsAgo = datasource:C(periodAgoCandleIndex - period)
-	datasource:Close()
+    local close = datasource:C(lastCandleIndex)
+    local periodAgoCandleIndex = lastCandleIndex - period - daysBack
+    local closePeriodAgo = datasource:C(periodAgoCandleIndex)
+    local closeTwoPeriodsAgo = datasource:C(periodAgoCandleIndex - period)
+    datasource:Close()
 	
-	local entry = {
-	  classCode = security.classCode,
-	  secCode = security.secCode,
-	  close = close,
+    table.sinsert(result, {
+      classCode = security.classCode,
+      secCode = security.secCode,
+      close = close,
       closePeriodAgo = closePeriodAgo,
-	  difference = getPercentDiff(closePeriodAgo, close),
-	  differencePeriodAgo = getPercentDiff(closeTwoPeriodsAgo, closePeriodAgo)
-	}
-	
-	table.sinsert(result, entry)
+      difference = getPercentDiff(closePeriodAgo, close),
+      differencePeriodAgo = getPercentDiff(closeTwoPeriodsAgo, closePeriodAgo)
+    })
   end
   
   table.ssort(result, function (a, b) return a.differencePeriodAgo > b.differencePeriodAgo end)
@@ -98,21 +96,13 @@ local buildRankedTable = function (watchList, period, daysBack)
   return result
 end
 
-local str_split = function (str, sep)
-    local fields = {}
-	str:gsub("([^"..sep.."]*)"..sep, function(c)
-	   table.sinsert(fields, c)
-	end)
-	return fields
-end
-
 -----
 
 local settings = {
   color = {
     new = _G.RGB(0, 255, 0),
-	old = _G.RGB(255, 255, 0),
-	out = _G.RGB(255, 0, 0)
+    old = _G.RGB(255, 255, 0),
+    out = _G.RGB(255, 0, 0)
   },
   daysBack = 0,
   top = 8,
@@ -133,30 +123,31 @@ function main ()
   
   local rankedTable = buildRankedTable(getWatchList(), settings.period, settings.daysBack)
   
-  local row_id
+  -- insert the rows
   for rank, security in ipairs(rankedTable) do
 
-	row_id = InsertRow(t_id, -1)
-	SetCell(t_id, row_id, 0, security.secCode)
-	SetCell(t_id, row_id, 1, tostring(security.close), security.close)
-	SetCell(t_id, row_id, 2, tostring(security.closePeriodAgo), security.closePeriodAgo)
-	SetCell(t_id, row_id, 3, string.format("%.2f", security.difference), security.difference)
-	SetCell(t_id, row_id, 4, tostring(rank), rank)
-	SetCell(t_id, row_id, 5, tostring(security.prevRank), security.prevRank)
-	
-	local color = nil
-	if rank > settings.top then
-	  if security.prevRank <= settings.top then 
-	    color = settings.color.out
-	  end
-	else
-	  if security.prevRank > settings.top then 
-	    color = settings.color.new
-	  else
+    local row_id = InsertRow(t_id, -1)
+    SetCell(t_id, row_id, 0, security.secCode)
+    SetCell(t_id, row_id, 1, tostring(security.close), security.close)
+    SetCell(t_id, row_id, 2, tostring(security.closePeriodAgo), security.closePeriodAgo)
+    SetCell(t_id, row_id, 3, string.format("%.2f", security.difference), security.difference)
+    SetCell(t_id, row_id, 4, tostring(rank), rank)
+    SetCell(t_id, row_id, 5, tostring(security.prevRank), security.prevRank)
+  
+    -- determine the row's color
+    local color = nil
+    if rank > settings.top then
+      if security.prevRank <= settings.top then 
+        color = settings.color.out
+      end
+    else
+      if security.prevRank > settings.top then 
+        color = settings.color.new
+      else
         color = settings.color.old
-      end		
-	end
-	
-	if color then _G.SetColor(t_id, row_id, _G.QTABLE_NO_INDEX, color, _G.QTABLE_DEFAULT_COLOR, _G.QTABLE_DEFAULT_COLOR, _G.QTABLE_DEFAULT_COLOR) end
+      end    
+    end
+  
+    if color then _G.SetColor(t_id, row_id, _G.QTABLE_NO_INDEX, color, _G.QTABLE_DEFAULT_COLOR, _G.QTABLE_DEFAULT_COLOR, _G.QTABLE_DEFAULT_COLOR) end
   end
 end
