@@ -1,4 +1,4 @@
-package.path = _G.getScriptPath() .. '/?.lua;' .. package.path
+package.path = getScriptPath() .. '/?.lua;' .. package.path
 
 local getPercentDiff = function (x0, x1)
   return 100.0 * (x1 - x0) / x0
@@ -51,7 +51,7 @@ local buildRankedTable = function (watchList, period, daysBack)
   local securityList = {}
   for classCode, secCodes in pairs(watchList) do
     for _, secCode in ipairs(secCodes) do
-      local datasource = _G.CreateDataSource(classCode, secCode, _G.INTERVAL_D1)
+      local datasource = CreateDataSource(classCode, secCode, INTERVAL_D1)
       datasource:SetEmptyCallback()
       table.sinsert(securityList, {
         classCode = classCode,
@@ -100,9 +100,9 @@ end
 
 local settings = {
   color = {
-    new = _G.RGB(0, 255, 0),
-    old = _G.RGB(255, 255, 0),
-    out = _G.RGB(255, 0, 0)
+    new = RGB(0, 255, 0),
+    old = RGB(255, 255, 0),
+    out = RGB(255, 0, 0)
   },
   daysBack = 0,
   top = 8,
@@ -111,15 +111,15 @@ local settings = {
 
 function main ()
 
-  local t_id = _G.AllocTable()
-  _G.AddColumn(t_id, 0, "Ticker", true, QTABLE_STRING_TYPE, 10) -- ticker
-  _G.AddColumn(t_id, 1, "Close", true, QTABLE_DOUBLE_TYPE, 30) -- close
-  _G.AddColumn(t_id, 2, "Prev. week close", true, QTABLE_DOUBLE_TYPE, 30) -- close on prev. week
-  _G.AddColumn(t_id, 3, "% diff", true, QTABLE_DOUBLE_TYPE, 20) -- % difference
-  _G.AddColumn(t_id, 4, "Rank", true, QTABLE_INT_TYPE, 20) -- rank
-  _G.AddColumn(t_id, 5, "Prev. Rank", true, QTABLE_INT_TYPE, 20) -- previous rank
-  _G.CreateWindow(t_id)
-  _G.SetWindowCaption(t_id, "BWS")
+  local t_id = AllocTable()
+  AddColumn(t_id, 0, "Ticker", true, QTABLE_STRING_TYPE, 10) -- ticker
+  AddColumn(t_id, 1, "Close", true, QTABLE_DOUBLE_TYPE, 30) -- close
+  AddColumn(t_id, 2, "Prev. week close", true, QTABLE_DOUBLE_TYPE, 30) -- close on prev. week
+  AddColumn(t_id, 3, "% diff", true, QTABLE_DOUBLE_TYPE, 20) -- % difference
+  AddColumn(t_id, 4, "Rank", true, QTABLE_INT_TYPE, 20) -- rank
+  AddColumn(t_id, 5, "Prev. Rank", true, QTABLE_INT_TYPE, 20) -- previous rank
+  CreateWindow(t_id)
+  SetWindowCaption(t_id, "BWS")
   
   local rankedTable = buildRankedTable(getWatchList(), settings.period, settings.daysBack)
   
@@ -148,6 +148,6 @@ function main ()
       end    
     end
   
-    if color then _G.SetColor(t_id, row_id, _G.QTABLE_NO_INDEX, color, _G.QTABLE_DEFAULT_COLOR, _G.QTABLE_DEFAULT_COLOR, _G.QTABLE_DEFAULT_COLOR) end
+    if color then SetColor(t_id, row_id, QTABLE_NO_INDEX, color, QTABLE_DEFAULT_COLOR, QTABLE_DEFAULT_COLOR, QTABLE_DEFAULT_COLOR) end
   end
 end
